@@ -12,6 +12,9 @@ export default class Slide {
     //E tipo null, vai se o valor inicial dele
     myTimeout: Timeout | null;
     pausedTimeout: Timeout | null;
+    //
+    thumbItems: HTMLElement[] | null;
+    thumb: HTMLElement | null;
     constructor(container: Element, slides: Element[], controls: Element, time: number = 5000) {
       this.container = container;
       this.slides = slides;
@@ -22,6 +25,9 @@ export default class Slide {
 
       const indexLocalStorage = localStorage.getItem("activeSlide") ? Number(localStorage.getItem("activeSlide")) : 0;
       
+      this.thumbItems = null;
+      this.thumb = null;
+
       this.index = indexLocalStorage;
       this.slide = this.slides[this.index];
       this.init();
@@ -41,11 +47,15 @@ export default class Slide {
     show(index: number): void{ 
       this.index = index;
       this.slide = this.slides[this.index];//this.slide = slide Ativo no momento;      
-
       localStorage.setItem("activeSlide", String(this.index));
 
-      this.slides.forEach( el => this.hide(el));
-      
+      if(this.thumbItems){
+        this.thumb =  this.thumbItems[this.index];
+        this.thumbItems.forEach(i => i.classList.remove("active"));
+        this.thumb.classList.add("active")
+      }
+
+      this.slides.forEach( el => this.hide(el));   
       this.slide.classList.add("active");
 
       if(this.slide instanceof HTMLVideoElement){
@@ -56,17 +66,17 @@ export default class Slide {
     }
 
     autoVideo(ownVideo: HTMLVideoElement){
-       //playing é o momento em q o video realmente esta tocando.
-      //Necessario checar pq, se o video n for carregado ownVideo.duration retornar NAN
+      //playing é o momento em q o video realmente esta tocando.
+      //Necessario checar pq, se o meta-data-html do video n for carregado, ownVideo.duration retornar NAN
       //Assim checo se ele está playing p rodar o this.auto();
       //Só q td vz q pauso e despauso essa func roda dnv, aí é necessário q ela rode só uma vz
+
       ownVideo.muted = true;
       ownVideo.play();
 
       let jutOneTime = true;
       ownVideo.addEventListener("playing", ()=>{
         if(jutOneTime){
-          console.log("uma vz")
           this.auto(ownVideo.duration * 1000);
           jutOneTime = false;
         }
@@ -76,10 +86,12 @@ export default class Slide {
     auto(time: number){
       //Se ele extistir limpo oq já existe, se n crio um novo.
       //Assim eu sempre crio um novo e limpo o anterior.
-      if(this.myTimeout){
-        this.myTimeout.clear();
-      }
+      if(this.myTimeout){  this.myTimeout.clear() }
       this.myTimeout = new Timeout(()=> this.next(), time);
+
+      if(this.thumb){
+        this.thumb.style.animationDuration = `${time}ms`
+      }
     }
 
     prev(){
@@ -105,6 +117,10 @@ export default class Slide {
           this.slide.pause()
         }
       }, 300);
+
+      if(this.thumb){
+        this.thumb.classList.add("paused");
+      }
     }
 
     continue(){
@@ -117,6 +133,10 @@ export default class Slide {
         if(this.slide instanceof HTMLVideoElement){
           this.slide.play()
         }
+      }
+
+      if(this.thumb){
+        this.thumb.classList.remove("paused");
       }
     }
 
@@ -135,8 +155,25 @@ export default class Slide {
       nextButton.addEventListener("pointerup", ()=> this.next());
     }
 
+    private addThumbItems(){
+      const thumbContainer = document.createElement("div");
+      thumbContainer.id = "slide-thumb";
+
+      for (let i = 0; i < this.slides.length; i++) {
+        thumbContainer.innerHTML += `
+          <span>
+            <span class="thumb-item"></span>
+          </span>
+        `
+      }
+
+      this.controls.appendChild(thumbContainer);
+      this.thumbItems = Array.from(document.querySelectorAll(".thumb-item"));
+    }
+
     private init(){
       this.addControls();
+      this.addThumbItems();
       this.show(this.index);
     }
 
