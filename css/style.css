@@ -4,10 +4,18 @@ body {
     background-color: rgb(28, 28, 49);
   }
   
-  body {
-    font-family: sans-serif;
-    margin: 20px;
+
+ 
+  body.paused {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    text-size-adjust: none;
+    -webkit-text-size-adjust: none;
+    touch-action: manipulation;
   }
+  
+
   
   img,
   video {
@@ -18,9 +26,23 @@ body {
   h1 {
     color: rgb(235, 233, 233);
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
+    margin-top: 80px;
   }
   
+  #slide{
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 20px;
+    display: grid;
+    border-radius: 4px;
+    /*Como dentro do slide há img tenho q colocar overfl-hddn pra border-radi funcionar*/
+    overflow: hidden;
+    background-color: black;
+  }
+
+
+
   #slide-elements {
     display: grid;
     grid-area: 1/1;
@@ -37,10 +59,7 @@ body {
     visibility: visible;
   }
   
-  #slide {
-    display: grid;
-  }
-  
+
   #slide-controls {
     position: relative;
     grid-area: 1/1;

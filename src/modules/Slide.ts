@@ -20,23 +20,25 @@ export default class Slide {
       this.slides = slides;
       this.controls = controls;
       this.time = time;
+
       this.myTimeout = null;
       this.pausedTimeout = null;
 
       const indexLocalStorage = localStorage.getItem("activeSlide") ? Number(localStorage.getItem("activeSlide")) : 0;
+      this.index = indexLocalStorage;
+
+      this.slide = this.slides[this.index];
+      this.paused = false;
       
+
       this.thumbItems = null;
       this.thumb = null;
 
-      this.index = indexLocalStorage;
-      this.slide = this.slides[this.index];
       this.init();
-      this.paused = false;
     }
 
     hide(el: Element){
       el.classList.remove("active");
-      
       //Pausando o video e reiniciando ele qndo ele n estiver ativo!
       if(el instanceof HTMLVideoElement){
         el.currentTime = 0;
@@ -109,21 +111,24 @@ export default class Slide {
     }
     
     pause(){
+      document.body.classList.add("paused");
       this.pausedTimeout = new Timeout(()=>{
         this.myTimeout?.pauseTimeout();
         this.paused = true;
+
+        if(this.thumb){
+          this.thumb.classList.add("paused");
+        }
 
         if(this.slide instanceof HTMLVideoElement){
           this.slide.pause()
         }
       }, 300);
-
-      if(this.thumb){
-        this.thumb.classList.add("paused");
-      }
     }
 
     continue(){
+      document.body.classList.remove("paused");
+
       this.pausedTimeout?.clear();
 
       if(this.paused){
@@ -149,7 +154,10 @@ export default class Slide {
       this.controls.appendChild(nextButton);
 
       this.controls.addEventListener("pointerdown", ()=> this.pause());
-      this.controls.addEventListener("pointerup", ()=> this.continue());
+      //Abaixo - Em qlqr lugar q eu levantar o mouse qro q continue o slide
+      document.addEventListener("pointerup", ()=> this.continue());
+      document.addEventListener("touchend", ()=> this.continue());
+
       
       prevButton.addEventListener("pointerup", ()=> this.prev());
       nextButton.addEventListener("pointerup", ()=> this.next());
